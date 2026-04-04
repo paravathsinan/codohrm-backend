@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak
+.env.bak
+
+# Log files
+*.log
+login_debug.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
