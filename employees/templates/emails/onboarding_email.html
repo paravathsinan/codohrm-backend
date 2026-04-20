@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to CODO HRM</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000100;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #0c0d0c;
+            border: 1px solid #1a1b1a;
+            border-radius: 24px;
+            overflow: hidden;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        .header {
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0c0d0c 0%, #1a1b1a 100%);
+            border-bottom: 1px solid #1a1b1a;
+        }
+        .logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+        }
+        .brand {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .brand span {
+            color: #00e676;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+        .credentials-card {
+            background-color: #161716;
+            border: 1px solid #2d2e2d;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .credential-item {
+            margin-bottom: 16px;
+        }
+        .credential-item:last-child {
+            margin-bottom: 0;
+        }
+        .label {
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00e676;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #00e676;
+            color: #000000;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 18px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 230, 118, 0.2);
+        }
+        .footer {
+            padding: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-top: 1px solid #1a1b1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- Replacing logo with text representation since base64/external images can be tricky in console preview -->
+            <div class="brand">COD<span>O</span> HRM</div>
+            <div style="font-size: 8px; font-weight: 900; letter-spacing: 4px; color: #00e676; margin-top: 8px; text-transform: uppercase;">AI Innovations</div>
+        </div>
+        <div class="content">
+            <h1>Welcome Aboard, {{ full_name }}</h1>
+            <p>Your organizational profile has been successfully deployed. You can now access the CODO HRM Portal using the secure credentials provided below.</p>
+            
+            <div class="credentials-card">
+                <div class="credential-item">
+                    <span class="label">Work Email / Username</span>
+                    <span class="value">{{ email }}</span>
+                </div>
+                <div class="credential-item">
+                    <span class="label">Access Key / Password</span>
+                    <span class="value">{{ password }}</span>
+                </div>
+            </div>
+
+            <div class="btn-container">
+                <a href="{{ login_url }}" class="btn">Login to Portal</a>
+            </div>
+        </div>
+        <div class="footer">
+            &copy; 2026 CODO AI Innovations. All Rights Reserved.
+        </div>
+    </div>
+</body>
+</html>
