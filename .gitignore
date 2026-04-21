@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
 env.bak/
 venv.bak/
@@ -16,9 +17,24 @@ db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
+static/
 
 # Environment variables
 .env
+
+# Tests and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Build and Distribution
+dist/
+build/
+*.egg-info/
 
 # IDEs
 .vscode/

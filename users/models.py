@@ -11,5 +11,10 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
 
+    def save(self, *args, **kwargs):
+        if self.is_superuser and self.role == 'staff':
+            self.role = 'superadmin'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
