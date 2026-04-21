@@ -1,6 +1,6 @@
 from django.db import models
 from core.models import BaseModel
-from employees.models import Employee, Enterprise
+from employees.models import Employee
 
 class Project(BaseModel):
     STATUS_CHOICES = (
@@ -15,7 +15,7 @@ class Project(BaseModel):
     duration = models.IntegerField(default=0) # in days
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ongoing')
     
-    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
+    
     project_lead = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='led_projects')
     team_members = models.ManyToManyField(Employee, related_name='assigned_projects', blank=True)
     

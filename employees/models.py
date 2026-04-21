@@ -119,7 +119,7 @@ class EmployeeRole(BaseModel):
     enterprise = models.ForeignKey(Enterprise, on_delete=models.SET_NULL, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.ForeignKey(Position, on_delete=models.SET_NULL, null=True, blank=True)
-    reported_to = models.CharField(max_length=100, blank=True, null=True)
+    reported_to = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='subordinates')
     working_mode = models.ForeignKey(WorkingMode, on_delete=models.SET_NULL, null=True, blank=True)
     employment_type = models.ForeignKey(EmploymentType, on_delete=models.SET_NULL, null=True, blank=True)
     working_hour = models.IntegerField(default=8)

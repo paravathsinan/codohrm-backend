@@ -68,6 +68,7 @@ class EmployeeRoleSerializer(serializers.ModelSerializer):
     enterprise_name = serializers.ReadOnlyField(source='enterprise.name')
     department_name = serializers.ReadOnlyField(source='department.name')
     position_name = serializers.ReadOnlyField(source='position.name')
+    reported_to_name = serializers.ReadOnlyField(source='reported_to.full_name')
     working_mode_name = serializers.ReadOnlyField(source='working_mode.name')
     employment_type_name = serializers.ReadOnlyField(source='employment_type.name')
 
@@ -75,9 +76,9 @@ class EmployeeRoleSerializer(serializers.ModelSerializer):
         model = EmployeeRole
         fields = (
             'id', 'enterprise', 'enterprise_name', 'department', 'department_name', 
-            'position', 'position_name', 'reported_to', 'working_mode', 'working_mode_name', 
-            'employment_type', 'employment_type_name', 'working_hour', 'work_days', 
-            'hourly_payment', 'joining_date'
+            'position', 'position_name', 'reported_to', 'reported_to_name', 'working_mode', 
+            'working_mode_name', 'employment_type', 'employment_type_name', 'working_hour', 
+            'work_days', 'hourly_payment', 'joining_date'
         )
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -92,6 +93,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
     roles = EmployeeRoleSerializer(many=True, required=False)
 
     # Related data (Read Only)
+    primary_department_name = serializers.ReadOnlyField(source='roles.first.department.name')
+    primary_position_name = serializers.ReadOnlyField(source='roles.first.position.name')
+    primary_enterprise_name = serializers.ReadOnlyField(source='roles.first.enterprise.name')
+    primary_hourly_payment = serializers.ReadOnlyField(source='roles.first.hourly_payment')
+
     attendance = AttendanceRecordSerializer(many=True, read_only=True)
     reimbursements = ReimbursementSerializer(many=True, read_only=True)
     tasks = EmployeeTaskSerializer(many=True, read_only=True)
@@ -103,7 +109,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
-        read_only_fields = ('user', 'attendance', 'reimbursements', 'tasks', 'performance', 'kps', 'kri', 'leave_balances', 'assigned_projects')
+        read_only_fields = (
+            'user', 'attendance', 'reimbursements', 'tasks', 'performance', 
+            'kps', 'kri', 'leave_balances', 'assigned_projects',
+            'primary_department_name', 'primary_position_name', 'primary_enterprise_name', 'primary_hourly_payment'
+        )
 
     def validate_email(self, value):
         """Check if a User with this email already exists, excluding current user for updates."""
