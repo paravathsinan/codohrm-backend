@@ -45,6 +45,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             defaults={'status': 'Ongoing'}
         )
 
+    def perform_update(self, serializer):
+        serializer.save()
+
     @action(detail=False, methods=['get'])
     def today(self, request):
         try:

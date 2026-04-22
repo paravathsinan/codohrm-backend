@@ -16,6 +16,7 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'employee', 'employee_name', 'enterprise_name', 'date', 'check_in', 'check_out', 
             'total_hours', 'total_break_seconds', 'status', 
-            'planned_work', 'completed_work', 'breaks'
+            'planned_work', 'completed_work', 'breaks',
+            'requested_extra_hours', 'overtime_reason', 'overtime_status'
         )
         read_only_fields = ('employee',)

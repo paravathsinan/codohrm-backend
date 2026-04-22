@@ -19,6 +19,19 @@ class AttendanceRecord(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Present')
     planned_work = models.TextField(blank=True, null=True)
     completed_work = models.TextField(blank=True, null=True)
+    
+    # Overtime / Extra Hours
+    requested_extra_hours = models.FloatField(default=0.0)
+    overtime_reason = models.TextField(blank=True, null=True)
+    overtime_status = models.CharField(
+        max_length=20, 
+        choices=(
+            ('Pending', 'Pending'),
+            ('Approved', 'Approved'),
+            ('Rejected', 'Rejected')
+        ),
+        default='Pending'
+    )
 
     class Meta:
         unique_together = ('employee', 'date')
