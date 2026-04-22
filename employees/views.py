@@ -16,7 +16,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     """
     ViewSet for complete Employee CRUD operations.
     """
-    queryset = Employee.objects.select_related('user', 'address', 'bank_details').prefetch_related('roles').all()
+    def get_queryset(self):
+        """
+        Exclude superadmins from the general employee directory.
+        """
+        return Employee.objects.select_related('user', 'address', 'bank_details').prefetch_related('roles').exclude(user__is_superuser=True)
+
     serializer_class = EmployeeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
