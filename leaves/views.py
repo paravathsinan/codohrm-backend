@@ -10,7 +10,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
     serializer_class = LeaveRequestSerializer
     
     def get_queryset(self):
-        if self.request.user.role == 'admin':
+        if self.request.user.role in ['admin', 'superadmin']:
             return LeaveRequest.objects.all().order_by('-created_at')
         try:
             employee = Employee.objects.get(user=self.request.user)
@@ -20,7 +20,25 @@ class LeaveViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         employee = get_object_or_404(Employee, user=self.request.user)
-        serializer.save(employee=employee)
+        # Calculate days
+        start_date = serializer.validated_data['start_date']
+        end_date = serializer.validated_data['end_date']
+        days = (end_date - start_date).days + 1
+        serializer.save(employee=employee, days=days)
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        leave = self.get_object()
+        leave.status = 'Approved'
+        leave.save()
+        return Response({'status': 'Approved'})
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        leave = self.get_object()
+        leave.status = 'Rejected'
+        leave.save()
+        return Response({'status': 'Rejected'})
 
 class LeaveBalanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LeaveBalanceSerializer

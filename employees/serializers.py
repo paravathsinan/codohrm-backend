@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -98,6 +99,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
     primary_enterprise_name = serializers.ReadOnlyField(source='roles.first.enterprise.name')
     primary_hourly_payment = serializers.ReadOnlyField(source='roles.first.hourly_payment')
 
+    attendance_status = serializers.SerializerMethodField()
+
     attendance = AttendanceRecordSerializer(many=True, read_only=True)
     reimbursements = ReimbursementSerializer(many=True, read_only=True)
     tasks = EmployeeTaskSerializer(many=True, read_only=True)
@@ -105,6 +108,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     kps = KeyPerformanceScoreSerializer(many=True, read_only=True)
     kri = KeyResultIndicatorSerializer(many=True, read_only=True)
     leave_balances = LeaveBalanceSerializer(many=True, read_only=True)
+    assigned_projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Employee
@@ -112,8 +116,18 @@ class EmployeeSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'user', 'attendance', 'reimbursements', 'tasks', 'performance', 
             'kps', 'kri', 'leave_balances', 'assigned_projects',
-            'primary_department_name', 'primary_position_name', 'primary_enterprise_name', 'primary_hourly_payment'
+            'primary_department_name', 'primary_position_name', 'primary_enterprise_name', 'primary_hourly_payment',
+            'attendance_status'
         )
+
+    def get_attendance_status(self, obj):
+        today = timezone.localtime(timezone.now()).date()
+        # Fetch only the status of the record for today
+        # We use .filter().first() to avoid loading all attendance records
+        record = obj.attendance.filter(date=today).first()
+        if record:
+            return record.status
+        return 'Absent'
 
     def validate_email(self, value):
         """Check if a User with this email already exists, excluding current user for updates."""
