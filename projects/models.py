@@ -18,6 +18,7 @@ class Project(BaseModel):
     
     project_lead = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='led_projects')
     team_members = models.ManyToManyField(Employee, related_name='assigned_projects', blank=True)
+    qa_testers = models.ManyToManyField(Employee, related_name='tested_projects', blank=True)
     
     # Infrastructure & Links (Stored as JSON for flexibility)
     infrastructure = models.JSONField(default=dict, blank=True)
