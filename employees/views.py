@@ -45,6 +45,36 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     # Optional: We could restrict permissions so employees only see info that belongs to them or manager
     # but the serializer handles the data logic natively for now.
 
+    def _initialize_leave_balances(self, employee):
+        from leaves.models import LeaveCategory, LeaveBalance
+        categories = LeaveCategory.objects.all()
+        for cat in categories:
+            LeaveBalance.objects.get_or_create(
+                employee=employee,
+                leave_category=cat,
+                defaults={
+                    'total_days': cat.max_days,
+                    'remaining_days': cat.max_days
+                }
+            )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        instance = serializer.instance
+        self._initialize_leave_balances(instance)
+        # Re-serialize to include the newly created leave balances and roles correctly
+        serializer = self.get_serializer(instance)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self._initialize_leave_balances(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
         """
@@ -52,6 +82,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         """
         try:
             employee = Employee.objects.select_related('user', 'address', 'bank_details').prefetch_related('roles').get(user=request.user)
+            self._initialize_leave_balances(employee)
             
             if request.method == 'PATCH':
                 serializer = self.get_serializer(employee, data=request.data, partial=True)
@@ -73,12 +104,14 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['enterprise']
 
 class PositionViewSet(viewsets.ModelViewSet):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['enterprise']
 
 class WorkingModeViewSet(viewsets.ModelViewSet):

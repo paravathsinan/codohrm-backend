@@ -1,19 +1,27 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from employees.models import Employee
-from .models import LeaveBalance, LeaveRequest
+from .models import LeaveBalance, LeaveRequest, LeaveCategory
 
 @receiver(post_save, sender=Employee)
 def create_leave_balances(sender, instance, created, **kwargs):
     if created:
-        LeaveBalance.objects.create(employee=instance, leave_type='Sick', total_days=10, remaining_days=10)
-        LeaveBalance.objects.create(employee=instance, leave_type='Casual', total_days=15, remaining_days=15)
-        LeaveBalance.objects.create(employee=instance, leave_type='Earned', total_days=15, remaining_days=15)
+        # Create default balances for all active leave categories
+        categories = LeaveCategory.objects.all()
+        for category in categories:
+            LeaveBalance.objects.get_or_create(
+                employee=instance,
+                leave_category=category,
+                defaults={
+                    'total_days': category.max_days,
+                    'remaining_days': category.max_days
+                }
+            )
 
 @receiver(post_save, sender=LeaveRequest)
 def update_leave_balance(sender, instance, **kwargs):
     if instance.status == 'Approved':
-        balance = LeaveBalance.objects.filter(employee=instance.employee, leave_type=instance.leave_type).first()
+        balance = LeaveBalance.objects.filter(employee=instance.employee, leave_category=instance.leave_category).first()
         if balance:
             # Check if this request was already deducted to prevent double-deduction
             # For simplicity in this HRM, we assume status changes to Approved only once.

@@ -79,7 +79,7 @@ class EmployeeRoleSerializer(serializers.ModelSerializer):
             'id', 'enterprise', 'enterprise_name', 'department', 'department_name', 
             'position', 'position_name', 'reported_to', 'reported_to_name', 'working_mode', 
             'working_mode_name', 'employment_type', 'employment_type_name', 'working_hour', 
-            'work_days', 'hourly_payment', 'joining_date'
+            'work_days', 'hourly_payment', 'joining_date', 'is_primary'
         )
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -193,9 +193,18 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        # We drop email/role logic on update to prevent user corruption, manage that thru user endpoint instead
-        validated_data.pop('email', None)
-        validated_data.pop('role', None)
+        # Handle nested User updates (Email/Role)
+        user_data = {}
+        if 'email' in validated_data:
+            user_data['email'] = validated_data.pop('email')
+            user_data['username'] = user_data['email'].split('@')[0]
+        if 'role' in validated_data:
+            user_data['role'] = validated_data.pop('role')
+
+        if user_data and instance.user:
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+            instance.user.save()
 
         address_data = validated_data.pop('address', None)
         bank_details_data = validated_data.pop('bank_details', None)

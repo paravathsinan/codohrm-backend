@@ -63,21 +63,29 @@ class LeaveBalanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LeaveBalanceSerializer
     
     def get_queryset(self):
-        try:
-            employee = Employee.objects.get(user=self.request.user)
+        employee_id = self.request.query_params.get('employee_id')
+        
+        if employee_id and self.request.user.role in ['admin', 'superadmin']:
+            try:
+                target_employee = Employee.objects.get(id=employee_id)
+            except Employee.DoesNotExist:
+                return LeaveBalance.objects.none()
+        else:
+            try:
+                target_employee = Employee.objects.get(user=self.request.user)
+            except Employee.DoesNotExist:
+                return LeaveBalance.objects.none()
+
+        # Auto-create balances if they don't exist for all categories
+        categories = LeaveCategory.objects.all()
+        for cat in categories:
+            LeaveBalance.objects.get_or_create(
+                employee=target_employee,
+                leave_category=cat,
+                defaults={
+                    'total_days': cat.max_days,
+                    'remaining_days': cat.max_days
+                }
+            )
             
-            # Auto-create balances if they don't exist for all categories
-            categories = LeaveCategory.objects.all()
-            for cat in categories:
-                LeaveBalance.objects.get_or_create(
-                    employee=employee,
-                    leave_category=cat,
-                    defaults={
-                        'total_days': cat.max_days,
-                        'remaining_days': cat.max_days
-                    }
-                )
-                
-            return LeaveBalance.objects.filter(employee=employee)
-        except Employee.DoesNotExist:
-            return LeaveBalance.objects.none()
+        return LeaveBalance.objects.filter(employee=target_employee)

@@ -26,10 +26,11 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ('employee', 'status')
 
 class LeaveBalanceSerializer(serializers.ModelSerializer):
+    leave_type = serializers.ReadOnlyField(source='leave_category.name')
     category_name = serializers.ReadOnlyField(source='leave_category.name')
     is_paid = serializers.ReadOnlyField(source='leave_category.is_paid')
 
     class Meta:
         model = LeaveBalance
-        fields = ('id', 'employee', 'leave_category', 'category_name', 'is_paid', 'total_days', 'used_days', 'remaining_days')
+        fields = ('id', 'employee', 'leave_category', 'leave_type', 'category_name', 'is_paid', 'total_days', 'used_days', 'remaining_days')
         read_only_fields = ('employee',)

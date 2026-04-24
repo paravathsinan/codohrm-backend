@@ -126,3 +126,4 @@ class EmployeeRole(BaseModel):
     work_days = models.IntegerField(default=5)
     hourly_payment = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     joining_date = models.DateField(blank=True, null=True)
+    is_primary = models.BooleanField(default=False)
