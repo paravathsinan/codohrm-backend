@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, permissions
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -13,11 +14,19 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         date_param = self.request.query_params.get('date')
+        enterprise_id = self.request.headers.get('X-Enterprise-ID')
         queryset = AttendanceRecord.objects.all()
         
         if date_param:
             queryset = queryset.filter(date=date_param)
             
+        # For staff, we MUST filter by enterprise to maintain isolation
+        if self.request.user.role == 'staff' and enterprise_id and enterprise_id.isdigit():
+            queryset = queryset.filter(enterprise_id=enterprise_id)
+        # For admins, we only filter if they specifically provide a valid enterprise ID
+        elif enterprise_id and enterprise_id.isdigit() and self.request.user.role in ['superadmin', 'hr']:
+            queryset = queryset.filter(Q(enterprise_id=enterprise_id) | Q(enterprise_id__isnull=True))
+
         if self.request.user.role in ['superadmin', 'hr']:
             return queryset
         
@@ -25,21 +34,27 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         employee = Employee.objects.get(user=self.request.user)
+        enterprise_header = self.request.headers.get('X-Enterprise-ID')
+        enterprise_id = None
+        if enterprise_header and enterprise_header.isdigit():
+            enterprise_id = enterprise_header
+            
         # Use server-side local date for consistency
         today = timezone.localtime(timezone.now()).date()
         
-        existing = AttendanceRecord.objects.filter(employee=employee, date=today).first()
+        existing = AttendanceRecord.objects.filter(employee=employee, date=today, enterprise_id=enterprise_id).first()
         planned_work = serializer.validated_data.get('planned_work', 'Daily Update')
         
         if existing:
             serializer.instance = existing
             serializer.save(status='Present', date=today)
         else:
-            serializer.save(employee=employee, status='Present', date=today)
+            serializer.save(employee=employee, enterprise_id=enterprise_id, status='Present', date=today)
 
         # Auto-create EmployeeTask (Daily Update) for "Saved Submissions"
         EmployeeTask.objects.get_or_create(
             employee=employee,
+            enterprise_id=enterprise_id,
             date=today,
             title=planned_work,
             defaults={'status': 'Ongoing'}
@@ -52,9 +67,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     def today(self, request):
         try:
             employee = Employee.objects.get(user=request.user)
-            # Use local date instead of UTC to match frontend expectations
+            enterprise_id = request.headers.get('X-Enterprise-ID')
             today = timezone.localtime(timezone.now()).date()
-            record = AttendanceRecord.objects.filter(employee=employee, date=today).first()
+            
+            queryset = AttendanceRecord.objects.filter(employee=employee, date=today)
+            
+            if enterprise_id and enterprise_id.isdigit():
+                queryset = queryset.filter(enterprise_id=enterprise_id)
+            elif enterprise_id and (enterprise_id == 'null' or enterprise_id == 'undefined'):
+                # Handle frontend "null" strings - check for records without enterprise
+                queryset = queryset.filter(enterprise_id__isnull=True)
+            
+            record = queryset.first()
             
             if record:
                 serializer = self.get_serializer(record)

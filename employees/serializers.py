@@ -94,10 +94,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
     roles = EmployeeRoleSerializer(many=True, required=False)
 
     # Related data (Read Only)
-    primary_department_name = serializers.ReadOnlyField(source='roles.first.department.name')
-    primary_position_name = serializers.ReadOnlyField(source='roles.first.position.name')
-    primary_enterprise_name = serializers.ReadOnlyField(source='roles.first.enterprise.name')
-    primary_hourly_payment = serializers.ReadOnlyField(source='roles.first.hourly_payment')
+    primary_department_name = serializers.SerializerMethodField()
+    primary_position_name = serializers.SerializerMethodField()
+    primary_enterprise_name = serializers.SerializerMethodField()
+    primary_hourly_payment = serializers.SerializerMethodField()
 
     attendance_status = serializers.SerializerMethodField()
 
@@ -119,6 +119,30 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'primary_department_name', 'primary_position_name', 'primary_enterprise_name', 'primary_hourly_payment',
             'attendance_status'
         )
+
+    def get_primary_department_name(self, obj):
+        first_role = obj.roles.first()
+        if first_role and first_role.department:
+            return first_role.department.name
+        return None
+
+    def get_primary_position_name(self, obj):
+        first_role = obj.roles.first()
+        if first_role and first_role.position:
+            return first_role.position.name
+        return None
+
+    def get_primary_enterprise_name(self, obj):
+        first_role = obj.roles.first()
+        if first_role and first_role.enterprise:
+            return first_role.enterprise.name
+        return None
+
+    def get_primary_hourly_payment(self, obj):
+        first_role = obj.roles.first()
+        if first_role:
+            return first_role.hourly_payment
+        return 0
 
     def get_attendance_status(self, obj):
         today = timezone.localtime(timezone.now()).date()

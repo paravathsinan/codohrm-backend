@@ -1,6 +1,6 @@
 from django.db import models
 from core.models import BaseModel
-from employees.models import Employee
+from employees.models import Employee, Enterprise
 
 class Reimbursement(BaseModel):
     STATUS_CHOICES = (
@@ -8,6 +8,7 @@ class Reimbursement(BaseModel):
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
     )
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='reimbursements', null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='reimbursements')
     transaction_date = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)

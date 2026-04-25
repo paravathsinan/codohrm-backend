@@ -1,6 +1,6 @@
 from django.db import models
 from core.models import BaseModel
-from employees.models import Employee
+from employees.models import Employee, Enterprise
 
 class Project(BaseModel):
     STATUS_CHOICES = (
@@ -10,6 +10,7 @@ class Project(BaseModel):
         ('Maintenance', 'Maintenance'),
     )
     
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='projects', null=True, blank=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     duration = models.IntegerField(default=0) # in days

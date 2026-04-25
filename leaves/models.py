@@ -1,6 +1,6 @@
 from django.db import models
 from core.models import BaseModel
-from employees.models import Employee
+from employees.models import Employee, Enterprise
 
 class LeaveCategory(BaseModel):
     name = models.CharField(max_length=50, unique=True)
@@ -17,6 +17,7 @@ class LeaveRequest(BaseModel):
         ('Rejected', 'Rejected'),
     )
     
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='leave_requests', null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_requests')
     leave_category = models.ForeignKey(LeaveCategory, on_delete=models.SET_NULL, null=True)
     start_date = models.DateField()
@@ -29,6 +30,7 @@ class LeaveRequest(BaseModel):
         return f"{self.employee.full_name} - {self.leave_category.name if self.leave_category else 'Unknown'} ({self.start_date})"
 
 class LeaveBalance(BaseModel):
+    enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='leave_balances', null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_balances')
     leave_category = models.ForeignKey(LeaveCategory, on_delete=models.CASCADE, null=True, blank=True)
     total_days = models.IntegerField(default=12)
@@ -36,7 +38,7 @@ class LeaveBalance(BaseModel):
     remaining_days = models.IntegerField(default=12)
 
     class Meta:
-        unique_together = ('employee', 'leave_category')
+        unique_together = ('employee', 'leave_category', 'enterprise')
 
     def __str__(self):
         return f"{self.employee.full_name} - {self.leave_category.name}: {self.remaining_days} left"

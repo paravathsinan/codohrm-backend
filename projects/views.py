@@ -12,13 +12,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         
         user = self.request.user
+        enterprise_id = self.request.headers.get('X-Enterprise-ID')
+        
         if hasattr(user, 'role') and user.role == 'staff':
             queryset = queryset.filter(
-                Q(team_members__user=user) | Q(project_lead__user=user)
-            ).distinct()
+                Q(team_members__user=user) | 
+                Q(project_lead__user=user) |
+                Q(qa_testers__user=user)
+            )
             
-        # Add basic filtering if needed (e.g. by enterprise)
-        enterprise_id = self.request.query_params.get('enterprise')
-        if enterprise_id:
-            queryset = queryset.filter(enterprise_id=enterprise_id)
+            if enterprise_id and enterprise_id.isdigit():
+                queryset = queryset.filter(enterprise_id=enterprise_id)
+                
+            queryset = queryset.distinct()
+            
+        elif enterprise_id and enterprise_id.isdigit():
+            # For admins, show enterprise projects + legacy (NULL) projects
+            queryset = queryset.filter(Q(enterprise_id=enterprise_id) | Q(enterprise_id__isnull=True))
+        else:
+            # No enterprise ID provided, show everything (global admin view)
+            pass
+            
         return queryset
+
+    def perform_create(self, serializer):
+        enterprise_id = self.request.headers.get('X-Enterprise-ID')
+        serializer.save(enterprise_id=enterprise_id)

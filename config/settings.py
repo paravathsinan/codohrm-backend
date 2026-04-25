@@ -144,6 +144,11 @@ AUTH_USER_MODEL = 'users.User'
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True # For dev, ideally set CORS_ALLOWED_ORIGINS in prod
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-enterprise-id',
+]
+
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
