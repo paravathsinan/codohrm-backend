@@ -33,31 +33,87 @@ class LeaveViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         leave = self.get_object()
-        if leave.status != 'Approved':
-            leave.status = 'Approved'
-            leave.save()
+        if leave.status == 'Approved':
+            return Response({'status': 'Already Approved'})
             
-            # Update Balance
-            balance, created = LeaveBalance.objects.get_or_create(
-                employee=leave.employee,
-                leave_category=leave.leave_category,
-                defaults={
-                    'total_days': leave.leave_category.max_days,
-                    'remaining_days': leave.leave_category.max_days
-                }
-            )
-            balance.used_days += leave.days
-            balance.remaining_days -= leave.days
-            balance.save()
+        # If it was previously rejected or pending, we can approve it
+        leave.status = 'Approved'
+        leave.save()
+        
+        # Update Balance
+        balance, created = LeaveBalance.objects.get_or_create(
+            employee=leave.employee,
+            leave_category=leave.leave_category,
+            defaults={
+                'total_days': leave.leave_category.max_days,
+                'remaining_days': leave.leave_category.max_days
+            }
+        )
+        balance.used_days += leave.days
+        balance.remaining_days -= leave.days
+        balance.save()
             
         return Response({'status': 'Approved'})
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         leave = self.get_object()
+        old_status = leave.status
         leave.status = 'Rejected'
         leave.save()
+
+        # If it was previously Approved, refund the balance
+        if old_status == 'Approved':
+            balance = LeaveBalance.objects.filter(
+                employee=leave.employee,
+                leave_category=leave.leave_category
+            ).first()
+            if balance:
+                balance.used_days -= leave.days
+                balance.remaining_days += leave.days
+                balance.save()
+
         return Response({'status': 'Rejected'})
+
+    @action(detail=True, methods=['post'])
+    def reset_to_pending(self, request, pk=None):
+        leave = self.get_object()
+        old_status = leave.status
+        leave.status = 'Pending'
+        leave.save()
+
+        # If it was previously Approved, refund the balance
+        if old_status == 'Approved':
+            balance = LeaveBalance.objects.filter(
+                employee=leave.employee,
+                leave_category=leave.leave_category
+            ).first()
+            if balance:
+                balance.used_days -= leave.days
+                balance.remaining_days += leave.days
+                balance.save()
+
+        return Response({'status': 'Pending'})
+
+    @action(detail=True, methods=['post'])
+    def discuss(self, request, pk=None):
+        leave = self.get_object()
+        old_status = leave.status
+        leave.status = 'Discuss'
+        leave.save()
+
+        # If it was previously Approved, refund the balance
+        if old_status == 'Approved':
+            balance = LeaveBalance.objects.filter(
+                employee=leave.employee,
+                leave_category=leave.leave_category
+            ).first()
+            if balance:
+                balance.used_days -= leave.days
+                balance.remaining_days += leave.days
+                balance.save()
+
+        return Response({'status': 'Discuss'})
 
 class LeaveBalanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LeaveBalanceSerializer

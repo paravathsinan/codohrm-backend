@@ -1,5 +1,20 @@
 from rest_framework import serializers
-from .models import Project
+from .models import Project, Client, Server, ProjectClassification
+
+class ServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Server
+        fields = '__all__'
+
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = '__all__'
+class ProjectClassificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectClassification
+        fields = '__all__'
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project

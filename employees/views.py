@@ -49,14 +49,14 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         from leaves.models import LeaveCategory, LeaveBalance
         categories = LeaveCategory.objects.all()
         for cat in categories:
-            LeaveBalance.objects.get_or_create(
-                employee=employee,
-                leave_category=cat,
-                defaults={
-                    'total_days': cat.max_days,
-                    'remaining_days': cat.max_days
-                }
-            )
+            # Check if balance exists for this employee and category, regardless of enterprise
+            if not LeaveBalance.objects.filter(employee=employee, leave_category=cat).exists():
+                LeaveBalance.objects.create(
+                    employee=employee,
+                    leave_category=cat,
+                    total_days=cat.max_days,
+                    remaining_days=cat.max_days
+                )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

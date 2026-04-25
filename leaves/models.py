@@ -15,6 +15,7 @@ class LeaveRequest(BaseModel):
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
+        ('Discuss', 'Discuss'),
     )
     
     enterprise = models.ForeignKey(Enterprise, on_delete=models.CASCADE, related_name='leave_requests', null=True, blank=True)
